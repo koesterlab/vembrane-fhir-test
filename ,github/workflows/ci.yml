@@ -1,0 +1,14 @@
+name: ci
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      # checkout
+      - uses: actions/checkout@v4
+      - uses: snakemake/snakemake-github-action@v2
+        with:
+          snakefile: workflow/Snakefile
+          args: "--cores 1 --sdm conda"
+          stagein: '' # additional preliminary commands to run (can be multiline)
+          show-disk-usage-on-error: true
