@@ -52,6 +52,8 @@ rule vembrane_fhir:
         "logs/vembrane/fhir/{sample}/{fmt}.log",
     params:
         build=lookup("ref/build", within=config),
+    conda:
+        "envs/vembrane.yaml",
     shell:
         "vembrane fhir {input} {wildcards.sample} {params.build} --profile mii_molgen "
         "--output-fmt {wildcards.fmt} > {output} 2> {log}"
