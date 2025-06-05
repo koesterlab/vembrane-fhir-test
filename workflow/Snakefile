@@ -22,7 +22,7 @@ rule get_genome:
         release=lookup("ref/release", within=config),
     log:
         "logs/get_genome.log",
-    cache: "omit-software"  # save space and time with between workflow caching (see docs)
+    cache: "omit-software"
     wrapper:
         "v6.2.0/bio/reference/ensembl-sequence"
 
@@ -46,13 +46,14 @@ rule get_vep_plugins:
         directory("resources/vep/plugins"),
     params:
         release=lookup("ref/release", within=config),
+    cache: "omit-software"
     wrapper:
         "v6.2.0/bio/vep/plugins"
 
 
 rule annotate_variants:
     input:
-        calls=lookup(query="sample == '{sample}'", within=samples, cols=["calls"]),  # .vcf, .vcf.gz or .bcf
+        calls=lookup(query="sample == '{sample}'", within=samples, cols=["calls"]),
         cache="resources/vep/cache",
         plugins="resources/vep/plugins",
         fasta="resources/genome.fasta",
