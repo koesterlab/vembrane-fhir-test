@@ -35,7 +35,9 @@ rule annotate_variants:
         stats="results/annotated/{sample}.html",
     params:
         plugins=[],
-        extra="--everything --hgvsg",  # optional: extra arguments
+        # The following flags add all fields required by vembrane fhir.
+        # --numbers, --symbol, and --hgvs are part of --everything as well.
+        extra="--numbers --symbol --hgvs --hgvsg",
     log:
         "logs/vep/annotate/{sample}.log",
     threads: 4
@@ -53,7 +55,7 @@ rule vembrane_fhir:
     params:
         build=lookup("ref/build", within=config),
     conda:
-        "envs/vembrane.yaml",
+        "envs/vembrane.yaml"
     shell:
         "vembrane fhir {input} {wildcards.sample} {params.build} --profile mii_molgen "
         "--output-fmt {wildcards.fmt} > {output} 2> {log}"

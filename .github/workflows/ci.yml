@@ -16,6 +16,6 @@ jobs:
         with:
           directory: "."
           snakefile: workflow/Snakefile
-          args: "--cores 1 --sdm conda"
+          args: "--cores 1 --sdm conda -n"
           stagein: '' # additional preliminary commands to run (can be multiline)
           show-disk-usage-on-error: true
