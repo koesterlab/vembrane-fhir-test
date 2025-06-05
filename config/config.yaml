@@ -1,0 +1,5 @@
+ref:
+  build: GRCh38
+  release: 112
+
+samples: config/samples.tsv

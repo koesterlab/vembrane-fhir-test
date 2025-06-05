@@ -1,0 +1,57 @@
+import pandas as pd
+
+
+configfile: "config/config.yaml"
+
+
+samples = pd.read_csv(config["samples"], sep="\t", comment="#")
+
+
+rule all:
+    input:
+        collect("results/fhir/{sample}.{fmt}", sample=samples["sample"], fmt="yaml"),
+
+
+rule get_vep_cache:
+    output:
+        directory("resources/vep/cache"),
+    params:
+        species="homo_sapiens",
+        build=lookup("ref/build", within=config),
+        release=lookup("ref/release", within=config),
+    log:
+        "logs/vep/cache.log",
+    cache: "omit-software"
+    wrapper:
+        "v6.2.0/bio/vep/cache"
+
+
+rule annotate_variants:
+    input:
+        calls=lookup(query="sample == '{sample}'", within=samples, cols=["calls"]),  # .vcf, .vcf.gz or .bcf
+        cache="resources/vep/cache",
+    output:
+        calls="results/annotated/{sample}.bcf",
+        stats="results/annotated/{sample}.html",
+    params:
+        plugins=[],
+        extra="--everything --hgvsg",  # optional: extra arguments
+    log:
+        "logs/vep/annotate/{sample}.log",
+    threads: 4
+    wrapper:
+        "v6.2.0/bio/vep/annotate"
+
+
+rule vembrane_fhir:
+    input:
+        "results/annotated/{sample}.bcf",
+    output:
+        "results/fhir/{sample}.{fmt}",
+    log:
+        "logs/vembrane/fhir/{sample}/{fmt}.log",
+    params:
+        build=lookup("ref/build", within=config),
+    shell:
+        "vembrane fhir {input} {wildcards.sample} {params.build} --profile mii_molgen "
+        "--output-fmt {wildcards.fmt} > {output} 2> {log}"
