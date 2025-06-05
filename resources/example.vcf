@@ -240,5 +240,6 @@
 ##INFO=<ID=known_E_ExAC,Number=0,Type=Flag,Description="ExAC.https://www.ensembl.org/info/genome/variation/prediction/variant_quality.html#evidence_status">
 ##INFO=<ID=known_CLIN_not_provided,Number=0,Type=Flag,Description="not provided.https://www.ensembl.org/info/genome/variation/phenotype/phenotype_annotation.html#clin_significance">
 ##INFO=<ID=dgiDB_drugs,Number=.,Type=String,Description="Combination of gene, drug, interaction types extracted from dgiDB. Each combination is pipe-seperated annotated as GENE|DRUG|TYPE">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	tumor
-12	25245351	.	C	A	30	PASS	SVLEN=.;	GT	./.
+12	25245351	.	C	A	30	PASS	SVLEN=.;	GT:AD	./.:10,10

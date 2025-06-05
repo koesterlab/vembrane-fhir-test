@@ -2,4 +2,10 @@ ref:
   build: GRCh38
   release: 112
 
-samples: config/samples.tsv
+callsets: config/callsets.tsv
+
+expressions:
+  confidence_status: >
+    "High" if QUAL >= 20 else ("Intermediate" if QUAL >= 10 else "Low")
+  sample_allelic_frequency: >
+    100 * (FORMAT['AD'][sample][1] / sum(FORMAT['AD'][sample])) if sum(FORMAT['AD'][sample]) > 0 else 0

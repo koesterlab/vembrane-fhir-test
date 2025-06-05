@@ -4,12 +4,16 @@ import pandas as pd
 configfile: "config/config.yaml"
 
 
-samples = pd.read_csv(config["samples"], sep="\t", comment="#")
+callsets = pd.read_csv(config["callsets"], sep="\t", comment="#")
 
 
 rule all:
     input:
-        collect("results/fhir/{sample}.{fmt}", sample=samples["sample"], fmt="yaml"),
+        collect(
+            "results/fhir/{callset}.{fmt}",
+            callset=callsets["callset"],
+            fmt=["json", "yaml"],
+        ),
 
 
 rule get_genome:
@@ -53,20 +57,20 @@ rule get_vep_plugins:
 
 rule annotate_variants:
     input:
-        calls=lookup(query="sample == '{sample}'", within=samples, cols=["calls"]),
-        cache="resources/vep/cache",
+        calls=lookup(query="callset == '{callset}'", within=callsets, cols=["calls"]),
+        # cache="resources/vep/cache",
         plugins="resources/vep/plugins",
         fasta="resources/genome.fasta",
     output:
-        calls="results/annotated/{sample}.bcf",
-        stats="results/annotated/{sample}.html",
+        calls="results/annotated/{callset}.bcf",
+        stats="results/annotated/{callset}.html",
     params:
         plugins=[],
         # The following flags add all fields required by vembrane fhir.
         # --numbers, --symbol, and --hgvs are part of --everything as well.
-        extra="--numbers --symbol --hgvs --hgvsg",
+        extra="--numbers --symbol --hgvs --hgvsg --vcf_info_field ANN --database",
     log:
-        "logs/vep/annotate/{sample}.log",
+        "logs/vep/annotate/{callset}.log",
     threads: 4
     wrapper:
         "v6.2.0/bio/vep/annotate"
@@ -74,15 +78,26 @@ rule annotate_variants:
 
 rule vembrane_fhir:
     input:
-        "results/annotated/{sample}.bcf",
+        "results/annotated/{callset}.bcf",
     output:
-        "results/fhir/{sample}.{fmt}",
+        "results/fhir/{callset}.{fmt}",
     log:
-        "logs/vembrane/fhir/{sample}/{fmt}.log",
+        "logs/vembrane/fhir/{callset}/{fmt}.log",
     params:
         build=lookup("ref/build", within=config),
+        sample=lookup(
+            query="callset == '{callset}'", within=callsets, cols=["tumor_sample"]
+        ),
+        confidence_status=lookup("expressions/confidence_status", within=config).strip(),
+        sample_allelic_frequency=lookup(
+            "expressions/sample_allelic_frequency", within=config
+        ).strip(),
     conda:
         "envs/vembrane.yaml"
     shell:
-        "vembrane fhir {input} {wildcards.sample} {params.build} --profile mii_molgen "
-        "--output-fmt {wildcards.fmt} > {output} 2> {log}"
+        "vembrane fhir {input} {params.sample} {params.build} "
+        "--profile mii_molgen_v2025.0.0 "
+        "--output-fmt {wildcards.fmt} "
+        "--sample-allelic-frequency {params.sample_allelic_frequency:q} "
+        "--confidence-status {params.confidence_status:q} "
+        "> {output} 2> {log}"

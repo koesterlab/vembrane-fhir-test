@@ -1,0 +1,2 @@
+callset	calls	tumor_sample
+test	resources/example.vcf	tumor
